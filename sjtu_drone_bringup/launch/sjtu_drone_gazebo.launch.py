@@ -30,6 +30,15 @@ def generate_launch_description():
     use_sim_time = LaunchConfiguration("use_sim_time", default="true")
     use_gui = DeclareLaunchArgument("use_gui", default_value="true", choices=["true", "false"],
                                     description="Whether to execute gzclient")
+    
+    world_file = os.path.join(
+        get_package_share_directory("sjtu_drone_description"),
+        "worlds", "playground.world"
+    )
+    world= LaunchConfiguration("world",default=world_file)
+    DeclareLaunchArgument('world', default_value=world_file,description='Full path to the world file to load'),
+    
+    
     xacro_file_name = "sjtu_drone.urdf.xacro"
     pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
     xacro_file = os.path.join(
@@ -49,12 +58,6 @@ def generate_launch_description():
         yaml_dict = yaml.load(f, Loader=yaml.FullLoader)
         model_ns = yaml_dict["namespace"] #+ "/"
     print("namespace: ", model_ns)
-
-
-    world_file = os.path.join(
-        get_package_share_directory("sjtu_drone_description"),
-        "worlds", "playground.world"
-    )
 
     def launch_gzclient(context, *args, **kwargs):
         if context.launch_configurations.get('use_gui') == 'true':
@@ -90,7 +93,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(
                 os.path.join(pkg_gazebo_ros, 'launch', 'gzserver.launch.py')
             ),
-            launch_arguments={'world': world_file,
+            launch_arguments={'world': world,
                               'verbose': "true",
                               'extra_gazebo_args': 'verbose'}.items()
         ),
