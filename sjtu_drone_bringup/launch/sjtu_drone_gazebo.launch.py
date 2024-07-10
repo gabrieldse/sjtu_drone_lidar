@@ -31,27 +31,28 @@ def generate_launch_description():
     use_gui = DeclareLaunchArgument("use_gui", default_value="true", choices=["true", "false"],
                                     description="Whether to execute gzclient")
     
-    world_file = os.path.join(
-        get_package_share_directory("sjtu_drone_description"),
+    world_default = os.path.join(
+        get_package_share_directory('sjtu_drone_description'),
         "worlds", "playground.world"
     )
-    world= LaunchConfiguration("world",default=world_file)
-    DeclareLaunchArgument('world', default_value=world_file,description='Full path to the world file to load'),
+    world_value = LaunchConfiguration(
+        'world', default = world_default)
     
-    
-    xacro_file_name = "sjtu_drone.urdf.xacro"
-    pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
     xacro_file = os.path.join(
         get_package_share_directory("sjtu_drone_description"),
-        "urdf", xacro_file_name
+        "urdf", "sjtu_drone.urdf.xacro"
     )
     yaml_file_path = os.path.join(
         get_package_share_directory('sjtu_drone_bringup'),
         'config', 'drone.yaml'
     )   
-    
     robot_description_config = xacro.process_file(xacro_file, mappings={"params_path": yaml_file_path})
     robot_desc = robot_description_config.toxml()
+    xacro_config = LaunchConfiguration("xacro", default=robot_desc)
+    DeclareLaunchArgument('xacro_config',default_value=robot_desc,description='Full path to the xacro file to load')
+    
+    pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
+
     # get ns from yaml
     model_ns = "drone"
     with open(yaml_file_path, 'r') as f:
@@ -71,6 +72,9 @@ def generate_launch_description():
 
     return LaunchDescription([
         use_gui,
+        #world_arg,
+        #xacro_config,
+        
         Node(
             package="robot_state_publisher",
             executable="robot_state_publisher",
@@ -93,7 +97,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(
                 os.path.join(pkg_gazebo_ros, 'launch', 'gzserver.launch.py')
             ),
-            launch_arguments={'world': world,
+            launch_arguments={'world': world_value,
                               'verbose': "true",
                               'extra_gazebo_args': 'verbose'}.items()
         ),
@@ -103,7 +107,7 @@ def generate_launch_description():
         Node(
             package="sjtu_drone_bringup",
             executable="spawn_drone",
-            arguments=[robot_desc, model_ns],
+            arguments=[xacro_config, model_ns],
             output="screen"
         ),
 
