@@ -54,11 +54,11 @@ def generate_launch_description():
 
     world_file = os.path.join(
         get_package_share_directory("sjtu_drone_description"),
-        "worlds", "factory_modified.model" #playground.world
+        "worlds", "playground.world" #playground.world factory_modified.model
     )
 
     def launch_gzclient(context, *args, **kwargs):
-        if context.launch_configurations.get('use_gui') == 'false': #modified original = true
+        if context.launch_configurations.get('use_gui') == 'true': #modified original = true
             return [IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(pkg_gazebo_ros, 'launch', 'gzclient.launch.py')
