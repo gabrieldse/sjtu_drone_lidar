@@ -261,4 +261,5 @@
       </plugin>
     </sensor>
   </gazebo>
+      <contact>
 </robot>
