@@ -31,14 +31,13 @@ def generate_launch_description():
     use_gui = DeclareLaunchArgument("use_gui", default_value="true", choices=["true", "false"],
                                     description="Whether to execute gzclient")
     
+      # Default paths
     world_default = os.path.join(
         get_package_share_directory('sjtu_drone_description'),
         "worlds", "playground.world"
     )
-    world_value = LaunchConfiguration(
-        'world', default = world_default)
     
-    xacro_file = os.path.join(
+    xacro_default_file = os.path.join(
         get_package_share_directory("sjtu_drone_description"),
         "urdf", "sjtu_drone.urdf.xacro"
     )
@@ -46,10 +45,23 @@ def generate_launch_description():
         get_package_share_directory('sjtu_drone_bringup'),
         'config', 'drone.yaml'
     )   
-    robot_description_config = xacro.process_file(xacro_file, mappings={"params_path": yaml_file_path})
+    
+    # Declare launch arguments
+    test = DeclareLaunchArgument('xacro_config',default_value=xacro_default_file,description='Full path to the xacro file to load')
+    
+    # Retrieve launch configuration
+    world_value = LaunchConfiguration(
+        'world',
+        default = world_default)
+    # idk if that one is used
+        
+    xacro_file = LaunchConfiguration(
+        "xacro")
+    
+    # Process the xacro file
+    #xacro_file_path = xacro_file.perform(None) 
+    robot_description_config = xacro.process_file(xacro_default_file, mappings={"params_path": yaml_file_path})
     robot_desc = robot_description_config.toxml()
-    xacro_config = LaunchConfiguration("xacro", default=robot_desc)
-    DeclareLaunchArgument('xacro_config',default_value=robot_desc,description='Full path to the xacro file to load')
     
     pkg_gazebo_ros = get_package_share_directory('gazebo_ros')
 
@@ -72,7 +84,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         use_gui,
-        #world_arg,
+        #test,
         #xacro_config,
         
         Node(
@@ -107,7 +119,7 @@ def generate_launch_description():
         Node(
             package="sjtu_drone_bringup",
             executable="spawn_drone",
-            arguments=[xacro_config, model_ns],
+            arguments=[robot_desc, model_ns],
             output="screen"
         ),
 
